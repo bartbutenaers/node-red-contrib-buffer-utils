@@ -1,0 +1,27 @@
+{
+    "name"         : "node-red-contrib-buffer-utils",
+    "version"      : "1.0.0",
+    "description"  : "A Node Red node containing utilities for working with NodeJs buffers",
+    "dependencies": {
+        "buffer-replace": "1.0.0",
+        "bitwise": "2.0.3"
+    },
+    "author": {
+        "name": "Bart Butenaers"
+    },
+    "license": "Apache-2.0",
+    "keywords": [ "node-red", "buffer" ],
+    "bugs": {
+        "url": "https://github.com/bartbutenaers/node-red-contrib-buffer-utils/issues"
+    },
+    "homepage": "https://github.com/bartbutenaers/node-red-contrib-buffer-utils",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bartbutenaers/node-red-contrib-buffer-utils.git"
+    },
+    "node-red"     : {
+        "nodes": {
+            "buffer-utils": "buffer-utils.js"
+        }
+    }
+}
