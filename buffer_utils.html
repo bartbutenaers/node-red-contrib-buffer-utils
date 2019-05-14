@@ -1,0 +1,402 @@
+<!--
+  Copyright 2019, Bart Butenaers
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<script type="text/javascript">
+    // TODO icoontjes van fontawesome ophalen 
+    RED.nodes.registerType('buffer-utils',{
+        category: 'function',
+        color: '#E9967A',
+        defaults: {
+            name: {value:""},
+            action: {value: "create"},
+            buffer1Field: {value: "payload"},
+            buffer2Field: {value: "payload"},
+            outputField: {value: "payload"},
+            arrayField: {value: "payload"},
+            encoding: {value: "utf8"},
+            encoding2: {value: "utf8"},
+            start: {value: 0},
+            start2: {value: 0},
+            end: {value: 0},
+            length: {value: 0},
+            fill: {value: 0},
+            index: {value: 0},
+            string: {value: ""},
+            string2: {value: ""}
+        },        
+        inputs:1,
+        outputs:1,
+        icon: "buffer.png",
+        label: function() {
+            return this.name||"Buffer processing";
+        },
+        paletteLabel: "Buffer processing",
+        oneditprepare: function() {
+            // When the action combobox value changes, only the corresponding field(s) input fields should be displayed
+            $("#node-input-action").change(function() {
+                var action = $("#node-input-action").val();
+                
+                // Show the buffer1Field value in a typedinput element (dropdown with only 'msg')
+                var keyValue = $("#node-input-buffer1Field").val() || 'payload';
+                $("#node-input-typed-buffer1Field").typedInput({types:['msg']});
+                $("#node-input-typed-buffer1Field").typedInput('type','msg');
+                $("#node-input-typed-buffer1Field").typedInput('value',keyValue);
+                
+                // Show the buffer2Field value in a typedinput element (dropdown with only 'msg')
+                keyValue = $("#node-input-buffer2Field").val() || 'payload';
+                $("#node-input-typed-buffer2Field").typedInput({types:['msg']});
+                $("#node-input-typed-buffer2Field").typedInput('type','msg');
+                $("#node-input-typed-buffer2Field").typedInput('value',keyValue);
+                
+                // Show the arrayField value in a typedinput element (dropdown with only 'msg')
+                keyValue = $("#node-input-arrayField").val() || 'payload';
+                $("#node-input-typed-arrayField").typedInput({types:['msg']});
+                $("#node-input-typed-arrayField").typedInput('type','msg');
+                $("#node-input-typed-arrayField").typedInput('value',keyValue);
+                
+                // Show the outputField value in a typedinput element (dropdown with only 'msg')
+                keyValue = $("#node-input-outputField").val() || 'payload';
+                $("#node-input-typed-outputField").typedInput({types:['msg']});
+                $("#node-input-typed-outputField").typedInput('type','msg');
+                $("#node-input-typed-outputField").typedInput('value',keyValue);
+                
+                // Hide all action dependent rows
+                $("#node-input-buffer1Field-row").hide();
+                $("#node-input-buffer2Field-row").hide();
+                // Output field is always visible
+                //$("#node-input-outputField-row").hide();
+                $("#node-input-arrayField-row").hide();
+                $("#node-input-encoding-row").hide();
+                $("#node-input-encoding2-row").hide();
+                $("#node-input-start-row").hide();
+                $("#node-input-end-row").hide();
+                $("#node-input-start2-row").hide();
+                $("#node-input-length-row").hide();
+                $("#node-input-fill-row").hide();
+                $("#node-input-string-row").hide();
+                $("#node-input-index-row").hide();
+                
+                // Depending on the action, some specific element(s) should be showed
+                switch (action) {
+                    case "create":
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-length-row").show();
+                        $("#node-input-fill-row").show();
+                        break;
+                    case "bytelength":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        break;
+                    case "compare":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break;
+                    case "concat":
+                        $("#node-input-arrayField-row").show();
+                        break;
+                    case "concatlength":
+                        $("#node-input-arrayField-row").show();
+                        $("#node-input-length-row").show();
+                        break;                           
+                    case "isBuffer":
+                        break;
+                    case "copy":
+                        $("#node-input-buffer1Field-row").show();
+                        break;
+                    case "copypart":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-end-row").show();
+                        $("#node-input-start2-row").show();
+                        break;
+                    case "isEncoding":
+                        $("#node-input-encoding-row").show();
+                        break;
+                    case "get":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-index-row").show();
+                        break;
+                    case "set":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-index-row").show();
+                        $("#node-input-fill-row").show();
+                        break;
+                    case "equals":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break;           
+                    case "fill":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-fill-row").show();
+                        break;  
+                    case "fillpart":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-end-row").show();
+                        $("#node-input-fill-row").show();                    
+                        break;
+                    case "indexof":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-fill-row").show();
+                        break; 
+                    case "allindexof":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-fill-row").show();
+                        break;                         
+                    case "keys":
+                        $("#node-input-buffer1Field-row").show();
+                        break;  
+                    case "lastindexof":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-fill-row").show();                      
+                        break;  
+                    case "length":
+                        $("#node-input-buffer1Field-row").show();
+                        break;  
+                    case "slice":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-end-row").show();
+                        break;
+                    case "collect":
+                        $("#node-input-fill-row").show(); // TODO fill value moet typedinput zijn waar je 'msg' kan kiezen
+                        $("#node-input-length-row").show();
+                        // $("#node-input-encoding-row").show(); TODO nodig ??????????????
+                        break;
+                    case "tojson":
+                        $("#node-input-buffer1Field-row").show();
+                        break;  
+                    case "tostring":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-end-row").show();
+                        break;  
+                    case "write":
+                        $("#node-input-string-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-length-row").show();
+                        $("#node-input-encoding-row").show();                    
+                        break; 
+                    case "tojson":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        break;  
+                    case "tostring":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-start-row").show();
+                        $("#node-input-end-row").show();
+                        break;  
+                    case "transcode":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-encoding-row").show();
+                        $("#node-input-encoding2-row").show();
+                        break; 
+                    case "replace":    
+                        $("#node-input-string-row").show();
+                        $("#node-input-string2-row").show();
+                        break;
+                    case "splitlength":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-length-row").show();
+                        break; 
+                    case "splitdelimiter":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-fill-row").show();
+                        break;
+                    case "and":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break;
+                    case "nand":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break; 
+                    case "or":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break; 
+                    case "nor":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break; 
+                    case "xor":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break;     
+                    case "xnor":
+                        $("#node-input-buffer1Field-row").show();
+                        $("#node-input-buffer2Field-row").show();
+                        break; 
+                    case "not":
+                        $("#node-input-buffer1Field-row").show();
+                        break;                         
+                }
+            });
+        },
+        oneditsave: function() {
+            // Copy the buffer1Field value from the typedinput element to the buffer1Field element
+            var keyValue = $("#node-input-typed-buffer1Field").typedInput('value');
+            $("#node-input-buffer1Field").val(keyValue);
+            
+            // Copy the buffer2Field value from the typedinput element to the buffer2Field element
+            keyValue = $("#node-input-typed-buffer2Field").typedInput('value');
+            $("#node-input-buffer2Field").val(keyValue);
+            
+            // Copy the arrayField value from the typedinput element to the arrayField element
+            var keyValue = $("#node-input-typed-arrayField").typedInput('value');
+            $("#node-input-arrayField").val(keyValue);
+            
+            // Copy the outputField value from the typedinput element to the outputField element
+            keyValue = $("#node-input-typed-outputField").typedInput('value');
+            $("#node-input-outputField").val(keyValue);
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="buffer-utils">
+    <div class="form-row">
+        <label for="node-input-action"><i class="fa fa-arrow-left"></i> Return</label>
+        <select type="text" id="node-input-action" style="width:70%;">
+            <option value="create">Create new</option>
+            <option value="bytelength">Get byte length</option>
+            <option value="compare">Compare</option>
+            <option value="concat">Concatenate</option>
+            <option value="concatlength">Concatenate to length</option>
+            <option value="isBuffer">Is buffer</option>
+            <option value="copy">Copy</option>
+            <option value="copypart">Copy partly</option>
+            <option value="isEncoding">Is encoding supported</option>
+            <option value="get">Get value from index</option>
+            <option value="set">Set index to value</option>
+            <option value="equals">Is equal</option>
+            <option value="fill">Fill</option>
+            <option value="fillpart">Fill partly</option>
+            <option value="indexof">First index of</option>
+            <option value="allindexof">All indexes of</option>
+            <option value="keys">Get keys</option>
+            <option value="lastindexof">Last index of</option>
+            <option value="length">Get length</option>
+            <option value="slice">Get slice</option>
+            <option value="collect">Collect values</option>
+            <option value="tojson">To JSON</option>
+            <option value="tostring">To string</option>
+            <option value="write">Write string</option>
+            <option value="transcode">Transcode</option>
+            <option value="replace">Replace in buffer</option>
+            <option value="splitlength">Split length</option>
+            <option value="splitdelimiter">Split delimiter</option>
+            <option value="and">Bitwise AND</option>
+            <option value="nand">Bitwise NAND</option>
+            <option value="or">Bitwise OR</option>
+            <option value="nor">Bitwise NOR</option>
+            <option value="xor">Bitwise XOR</option>
+            <option value="xnor">Bitwise XNOR</option>              
+            <option value="not">Bitwise NOT (flip all)</option> 
+        </select>
+    </div>
+    <div class="form-row" id="node-input-buffer1Field-row">
+        <label for="node-input-typed-buffer1Field"><i class="fa fa-list"></i> Buffer</label>
+        <input id="node-input-typed-buffer1Field" type="text" style="width: 70%">
+        <input id="node-input-buffer1Field" type="hidden">
+    </div>
+    <div class="form-row" id="node-input-buffer2Field-row">
+        <label for="node-input-typed-buffer2Field"><i class="fa fa-list"></i> Buffer 2</label>
+        <input id="node-input-typed-buffer2Field" type="text" style="width: 70%">
+        <input id="node-input-buffer2Field" type="hidden">
+    </div>
+    <div class="form-row" id="node-input-arrayField-row">
+        <label for="node-input-typed-arrayField"><i class="fa fa-list"></i> Buffer array</label>
+        <input id="node-input-typed-arrayField" type="text" style="width: 70%">
+        <input id="node-input-arrayField" type="hidden">
+    </div>
+    <div class="form-row" id="node-input-outputField-row">
+        <label for="node-input-typed-outputField"><i class="fa fa-list"></i> Output</label>
+        <input id="node-input-typed-outputField" type="text" style="width: 70%">
+        <input id="node-input-outputField" type="hidden">
+    </div>
+    <div class="form-row" id="node-input-encoding-row">
+        <!--https://stackoverflow.com/questions/14551608/list-of-encodings-that-node-js-supports-->
+        <label for="node-input-encoding"><i class="fa fa-arrow-left"></i> Encoding</label>
+        <select type="text" id="node-input-encoding" style="width:70%;">
+            <option value="ascii">ascii</option>
+            <option value="binary">binary</option>
+            <option value="hex">hex</option>
+            <option value="utf8">utf8</option>
+            <option value="ucs2">ucs2</option>
+            <option value="utf16le">utf16le</option>
+            <option value="latin1">latin1 (ISO8859-1)</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-input-encoding2-row">
+        <label for="node-input-encoding2"><i class="fa fa-arrow-left"></i> Encoding 2</label>
+        <select type="text" id="node-input-encoding2" style="width:70%;">
+            <option value="ascii">ascii</option>
+            <option value="binary">binary</option>
+            <option value="hex">hex</option>
+            <option value="utf8">utf8</option>
+            <option value="ucs2">ucs2</option>
+            <option value="utf16le">utf16le</option>
+            <option value="latin1">latin1 (ISO8859-1)</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-input-start-row">
+        <label for="node-input-start"><i class="icon-tag"></i> Start</label>
+        <input type="number" id="node-input-start" placeholder="Start">
+    </div>
+    <div class="form-row" id="node-input-end-row">
+        <label for="node-input-end"><i class="icon-tag"></i> End</label>
+        <input type="number" id="node-input-end" placeholder="End">
+    </div>
+    <div class="form-row" id="node-input-length-row">
+        <label for="node-input-length"><i class="icon-tag"></i> Length</label>
+        <input type="number" id="node-input-length" placeholder="Length">
+    </div>
+    <div class="form-row" id="node-input-fill-row">
+        <label for="node-input-fill"><i class="icon-tag"></i> Value</label>
+        <input type="text" id="node-input-fill" placeholder="Fill value">
+    </div>
+    <div class="form-row" id="node-input-index-row">
+        <label for="node-input-index"><i class="icon-tag"></i> Index</label>
+        <input type="text" id="node-input-index" placeholder="Index">
+    </div>
+    <div class="form-row" id="node-input-string-row">
+        <label for="node-input-string"><i class="icon-tag"></i> String</label>
+        <input type="text" id="node-input-string" placeholder="String">
+    </div>
+    <div class="form-row" id="node-input-string2-row">
+        <label for="node-input-string2"><i class="icon-tag"></i> String 2</label>
+        <input type="text" id="node-input-string2" placeholder="String 2">
+    </div>
+    <div class="form-row" id="node-input-start2-row">
+        <label for="node-input-start2"><i class="icon-tag"></i> Start 2</label>
+        <input type="number" id="node-input-start2" placeholder="Start">
+    </div>
+    </br>
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="buffer-utils">
+    <p>A Node-RED node to handle NodeJs buffers.</p>
+</script>
